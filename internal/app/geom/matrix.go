@@ -1,7 +1,7 @@
 package geom
 
 import (
-	"github.com/eriklupander/pt/internal/app/identity"
+	"github.com/eriklupander/pathtracer/internal/app/identity"
 )
 
 var IdentityMatrix = identity.Matrix

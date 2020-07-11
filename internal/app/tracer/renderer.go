@@ -1,11 +1,11 @@
 package tracer
 
 import (
-	camera2 "github.com/eriklupander/pt/internal/app/camera"
-	canvas2 "github.com/eriklupander/pt/internal/app/canvas"
-	"github.com/eriklupander/pt/internal/app/geom"
-	"github.com/eriklupander/pt/internal/app/scenes"
-	"github.com/eriklupander/pt/internal/app/shapes"
+	camera2 "github.com/eriklupander/pathtracer/internal/app/camera"
+	canvas2 "github.com/eriklupander/pathtracer/internal/app/canvas"
+	"github.com/eriklupander/pathtracer/internal/app/geom"
+	"github.com/eriklupander/pathtracer/internal/app/scenes"
+	"github.com/eriklupander/pathtracer/internal/app/shapes"
 	"math"
 	"math/rand"
 	"sort"

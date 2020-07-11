@@ -1,4 +1,4 @@
-module github.com/eriklupander/pt
+module github.com/eriklupander/pathtracer
 
 go 1.14
 

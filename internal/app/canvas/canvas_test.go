@@ -1,7 +1,7 @@
 package canvas
 
 import (
-	"github.com/eriklupander/pt/internal/app/geom"
+	"github.com/eriklupander/pathtracer/internal/app/geom"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

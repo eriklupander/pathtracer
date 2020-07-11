@@ -1,8 +1,8 @@
 package scenes
 
 import (
-	"github.com/eriklupander/pt/internal/app/camera"
-	"github.com/eriklupander/pt/internal/app/shapes"
+	"github.com/eriklupander/pathtracer/internal/app/camera"
+	"github.com/eriklupander/pathtracer/internal/app/shapes"
 )
 
 type Scene struct {

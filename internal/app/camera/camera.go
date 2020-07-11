@@ -1,7 +1,7 @@
 package camera
 
 import (
-	"github.com/eriklupander/pt/internal/app/geom"
+	"github.com/eriklupander/pathtracer/internal/app/geom"
 	"math"
 )
 

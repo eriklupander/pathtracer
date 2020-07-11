@@ -2,11 +2,11 @@ package tracer
 
 import (
 	"fmt"
-	"github.com/eriklupander/pt/cmd"
-	"github.com/eriklupander/pt/internal/app/camera"
-	canvas2 "github.com/eriklupander/pt/internal/app/canvas"
-	"github.com/eriklupander/pt/internal/app/geom"
-	"github.com/eriklupander/pt/internal/app/scenes"
+	"github.com/eriklupander/pathtracer/cmd"
+	"github.com/eriklupander/pathtracer/internal/app/camera"
+	canvas2 "github.com/eriklupander/pathtracer/internal/app/canvas"
+	"github.com/eriklupander/pathtracer/internal/app/geom"
+	"github.com/eriklupander/pathtracer/internal/app/scenes"
 	"image"
 	"image/png"
 	"math"

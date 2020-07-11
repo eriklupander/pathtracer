@@ -2,7 +2,7 @@ package canvas
 
 import (
 	"fmt"
-	"github.com/eriklupander/pt/internal/app/geom"
+	"github.com/eriklupander/pathtracer/internal/app/geom"
 	"math"
 	"strconv"
 	"strings"

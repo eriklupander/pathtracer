@@ -1,11 +1,11 @@
 package scenes
 
 import (
-	"github.com/eriklupander/pt/cmd"
-	"github.com/eriklupander/pt/internal/app/camera"
-	"github.com/eriklupander/pt/internal/app/geom"
-	"github.com/eriklupander/pt/internal/app/material"
-	"github.com/eriklupander/pt/internal/app/shapes"
+	"github.com/eriklupander/pathtracer/cmd"
+	"github.com/eriklupander/pathtracer/internal/app/camera"
+	"github.com/eriklupander/pathtracer/internal/app/geom"
+	"github.com/eriklupander/pathtracer/internal/app/material"
+	"github.com/eriklupander/pathtracer/internal/app/shapes"
 	"math"
 )
 

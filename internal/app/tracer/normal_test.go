@@ -1,8 +1,8 @@
 package tracer
 
 import (
-	"github.com/eriklupander/pt/internal/app/geom"
-	"github.com/eriklupander/pt/internal/app/shapes"
+	"github.com/eriklupander/pathtracer/internal/app/geom"
+	"github.com/eriklupander/pathtracer/internal/app/shapes"
 	"github.com/stretchr/testify/assert"
 	"math"
 	"testing"

@@ -1,10 +1,10 @@
 package tracer
 
 import (
-	"github.com/eriklupander/pt/cmd"
-	"github.com/eriklupander/pt/internal/app/canvas"
-	"github.com/eriklupander/pt/internal/app/geom"
-	"github.com/eriklupander/pt/internal/app/scenes"
+	"github.com/eriklupander/pathtracer/cmd"
+	"github.com/eriklupander/pathtracer/internal/app/canvas"
+	"github.com/eriklupander/pathtracer/internal/app/geom"
+	"github.com/eriklupander/pathtracer/internal/app/scenes"
 	"github.com/stretchr/testify/assert"
 	"sync"
 	"testing"

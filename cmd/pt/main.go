@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/eriklupander/pt/cmd"
-	"github.com/eriklupander/pt/internal/app/scenes"
-	"github.com/eriklupander/pt/internal/app/tracer"
+	"github.com/eriklupander/pathtracer/cmd"
+	"github.com/eriklupander/pathtracer/internal/app/scenes"
+	"github.com/eriklupander/pathtracer/internal/app/tracer"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"

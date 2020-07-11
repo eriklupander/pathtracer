@@ -1,8 +1,8 @@
 package shapes
 
 import (
-	"github.com/eriklupander/pt/internal/app/geom"
-	"github.com/eriklupander/pt/internal/app/material"
+	"github.com/eriklupander/pathtracer/internal/app/geom"
+	"github.com/eriklupander/pathtracer/internal/app/material"
 	"math"
 	"math/rand"
 )
