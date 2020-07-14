@@ -20,7 +20,6 @@ var black = geom.NewColor(0, 0, 0)
 var white = geom.NewColor(1, 1, 1)
 
 type PathTracer struct {
-
 }
 
 func (t *PathTracer) Render(sceneFactory func() *scenes.Scene) {

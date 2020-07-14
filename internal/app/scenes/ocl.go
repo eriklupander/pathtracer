@@ -54,14 +54,15 @@ func OCLScene() func() *Scene {
 		leftSphere := shapes.NewSphere()
 		leftSphere.SetTransform(geom.Translate(-0.25, -0.24, 0.1))
 		leftSphere.SetTransform(geom.Scale(0.16, 0.16, 0.16))
-		//leftSphere.SetMaterial(material.NewDiffuse(0.9, 0.8, 0.7))
-		leftSphere.SetMaterial(material.NewMirror())
+		leftSphere.SetMaterial(material.NewDiffuse(0.9, 0.8, 0.7))
+		//leftSphere.SetMaterial(material.NewMirror())
 
 		// right sphere
 		rightSphere := shapes.NewSphere()
 		rightSphere.SetTransform(geom.Translate(0.25, -0.24, -0.1))
 		rightSphere.SetTransform(geom.Scale(0.16, 0.16, 0.16))
-		rightSphere.SetMaterial(material.NewDiffuse(0.9, 0.8, 0.7))
+		//		rightSphere.SetMaterial(material.NewDiffuse(0.9, 0.8, 0.7))
+		rightSphere.SetMaterial(material.NewGlass())
 
 		// lightsource
 		lightsource := shapes.NewSphere()

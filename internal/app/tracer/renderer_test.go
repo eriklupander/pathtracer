@@ -16,9 +16,9 @@ func TestPathTracer_Render(t *testing.T) {
 	cmd.Cfg.Height = 240
 	jobs := make(chan *job)
 	wg := sync.WaitGroup{}
-	testee := NewCtx(1, scenes.ReferenceScene()(), canvas.NewCanvas(320, 240), jobs, &wg)
+	testee := NewCtx(1, scenes.OCLScene()(), canvas.NewCanvas(320, 240), jobs, &wg)
 	var cameraRay = geom.NewEmptyRay()
-	testee.rayForPixelPathTracer(120, 169, &cameraRay)
+	testee.rayForPixelPathTracer(210, 173, &cameraRay)
 
 	color := testee.trace(cameraRay)
 	assert.NotNil(t, color)

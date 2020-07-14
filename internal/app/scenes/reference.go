@@ -13,22 +13,13 @@ func ReferenceScene() func() *Scene {
 	return func() *Scene {
 
 		cam := camera.NewCamera(cmd.Cfg.Width, cmd.Cfg.Height, math.Pi/3, geom.NewPoint(-2, 2.0, -4), geom.NewPoint(0, 0.5, 0))
-		//lightBulb := shapes.NewSphere()
-		//lightBulb.SetTransform(geom.Translate(0, 5, -1))
-		//
-		//lightBulb.Material = material.NewLightBulb()
-		//
-		//s1 := shapes.NewSphere()
-		//s1.Material = material.NewDiffuse(1,.7, .7)
-		//
-		//floor := shapes.NewPlane()
-		//floor.SetTransform(geom.Translate(0, -1, 0))
-		//floor.Material = material.NewDiffuse(.9,.8, .95)
 
 		lightBulb := shapes.NewSphere()
-		lightBulb.SetMaterial(material.NewLightBulb())
-		lightBulb.SetTransform(geom.Translate(-5, 4.5, -3))
-		lightBulb.SetTransform(geom.Scale(1.5, 0.5, 1.5))
+		lb := material.NewLightBulb()
+		lb.Emission = geom.NewColor(13, 13, 13)
+		lightBulb.SetMaterial(lb)
+		lightBulb.SetTransform(geom.Translate(-4, 3.5, -2.5))
+		//lightBulb.SetTransform(geom.Scale(1.5, 1.5, 1.5))
 
 		floor := shapes.NewPlane()
 		floor.SetTransform(geom.Translate(0, 0.01, 0))
@@ -39,10 +30,25 @@ func ReferenceScene() func() *Scene {
 		ceilMat := material.NewDefaultMaterial()
 		ceil.SetMaterial(ceilMat)
 
-		wall := shapes.NewPlane()
-		wall.SetMaterial(material.NewDiffuse(0.9, 0.9, 0.9))
-		wall.SetTransform(geom.Translate(0, 0, 8))
-		wall.SetTransform(geom.RotateX(math.Pi / 2))
+		backWall := shapes.NewPlane()
+		backWall.SetMaterial(material.NewDiffuse(0.9, 0.9, 0.9))
+		backWall.SetTransform(geom.Translate(0, 0, 6))
+		backWall.SetTransform(geom.RotateX(math.Pi / 2))
+
+		frontWall := shapes.NewPlane()
+		frontWall.SetMaterial(material.NewDiffuse(0.9, 0.9, 0.9))
+		frontWall.SetTransform(geom.Translate(0, 0, -6))
+		frontWall.SetTransform(geom.RotateX(math.Pi / 2))
+
+		leftWall := shapes.NewPlane()
+		leftWall.SetMaterial(material.NewDiffuse(0.9, 0.9, 0.9))
+		leftWall.SetTransform(geom.Translate(-5, 0, 0))
+		leftWall.SetTransform(geom.RotateZ(math.Pi / 2))
+
+		rightWall := shapes.NewPlane()
+		rightWall.SetMaterial(material.NewDiffuse(0.9, 0.9, 0.9))
+		rightWall.SetTransform(geom.Translate(5, 0, 0))
+		rightWall.SetTransform(geom.RotateZ(math.Pi / 2))
 
 		// transparent sphere
 		middle := shapes.NewSphere()
@@ -74,7 +80,10 @@ func ReferenceScene() func() *Scene {
 				floor,
 				ceil,
 				middle,
-				wall,
+				backWall,
+				frontWall,
+				leftWall,
+				rightWall,
 				s1,
 				s2,
 				s3,

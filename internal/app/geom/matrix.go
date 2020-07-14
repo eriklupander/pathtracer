@@ -65,10 +65,6 @@ func MultiplyByTuple(m1 Mat4x4, t Tuple4) Tuple4 {
 		c := m1[(row*4)+2] * t[2]
 		d := m1[(row*4)+3] * t[3]
 		t1[row] = a + b + c + d
-		//(m1[(row*4)+0] * t[0]) +
-		//(m1[(row*4)+1] * t[1]) +
-		//(m1[(row*4)+2] * t[2]) +
-		//(m1[(row*4)+3] * t[3])
 	}
 	return t1
 }
@@ -79,10 +75,6 @@ func MultiplyByTupleUsingValues(m1 Mat4x4, t Tuple4, out *Tuple4) {
 		c := m1[(row*4)+2] * t[2]
 		d := m1[(row*4)+3] * t[3]
 		out[row] = a + b + c + d
-		//(m1[(row*4)+0] * t[0]) +
-		//(m1[(row*4)+1] * t[1]) +
-		//(m1[(row*4)+2] * t[2]) +
-		//(m1[(row*4)+3] * t[3])
 	}
 }
 func MultiplyByTupleUsingPointers(m1 *Mat4x4, t, out *Tuple4) {
@@ -92,22 +84,8 @@ func MultiplyByTupleUsingPointers(m1 *Mat4x4, t, out *Tuple4) {
 		c := m1[(row*4)+2] * t[2]
 		d := m1[(row*4)+3] * t[3]
 		out[row] = a + b + c + d
-		//(m1[(row*4)+0] * t[0]) +
-		//(m1[(row*4)+1] * t[1]) +
-		//(m1[(row*4)+2] * t[2]) +
-		//(m1[(row*4)+3] * t[3])
 	}
 }
-
-//func MultiplyByTuplePtr(m1 Mat4x4, t Tuple4, out *Tuple4) {
-//for row := 0; row < 4; row++ {
-//	out[row] = (m1[(row*4)+0] * t[0]) +
-//		(m1[(row*4)+1] * t[1]) +
-//		(m1[(row*4)+2] * t[2]) +
-//		(m1[(row*4)+3] * t[3])
-//}
-//MultiplyMatrixByVec64((*[16]float64)(&m1), (*[4]float64)(&t), (*[4]float64)(out))
-//}
 
 // Transpose flips rows and cols in the matrix.
 func Transpose(m1 Mat4x4) Mat4x4 {
@@ -236,10 +214,6 @@ func Inverse(m1 Mat4x4) Mat4x4 {
 
 func multiply4x4(m1 Mat4x4, m2 Mat4x4, row int, col int) float64 {
 	// always row from m1, col from m2
-	//a0 := m1.Get(row, 0) * m2.Get(0, col)
-	//a1 := m1.Get(row, 1) * m2.Get(1, col)
-	//a2 := m1.Get(row, 2) * m2.Get(2, col)
-	//a3 := m1.Get(row, 3) * m2.Get(3, col)
 	a0 := m1[(row*4)+0] * m2[0+col]
 	a1 := m1[(row*4)+1] * m2[4+col]
 	a2 := m1[(row*4)+2] * m2[8+col]
