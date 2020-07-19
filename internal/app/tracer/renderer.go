@@ -13,8 +13,8 @@ import (
 	"time"
 )
 
-const samples = 128
-const maxBounces = 5
+const samples = 2048
+const maxBounces = 4
 
 var backgroundColor = geom.NewColor(0.15, 0.15, 0.25)
 
@@ -116,29 +116,35 @@ func (ctx *Ctx) trace(ray geom.Ray) geom.Tuple4 {
 
 		if intersection.S.GetMaterial().RefractiveIndex != 1.0 {
 
-			// Find the ratio of first index of refraction to the second.
-			nRatio := ctx.comps.N1 / ctx.comps.N2
+			// some rays could reflect rather than refract
+			if intersection.S.GetMaterial().Reflectivity > ctx.rnd.Float64() {
+				ray = geom.NewRay(ctx.comps.OverPoint, ctx.comps.ReflectVec)
+				b.diffuse = false
+			} else {
+				// Find the ratio of first index of refraction to the second.
+				nRatio := ctx.comps.N1 / ctx.comps.N2
 
-			// cos(theta_i) is the same as the dot product of the two vectors
-			cosI := geom.Dot(ctx.comps.EyeVec, ctx.comps.NormalVec)
+				// cos(theta_i) is the same as the dot product of the two vectors
+				cosI := geom.Dot(ctx.comps.EyeVec, ctx.comps.NormalVec)
 
-			// Find sin(theta_t)^2 via trigonometric identity
-			sin2Theta := (nRatio * nRatio) * (1.0 - (cosI * cosI))
-			if sin2Theta > 1.0 {
-				return black
+				// Find sin(theta_t)^2 via trigonometric identity
+				sin2Theta := (nRatio * nRatio) * (1.0 - (cosI * cosI))
+				if sin2Theta > 1.0 {
+					return black
+				}
+
+				// Find cos(theta_t) via trigonometric identity
+				cosTheta := math.Sqrt(1.0 - sin2Theta)
+
+				// Compute the direction of the refracted ray
+				newdir := geom.Sub(
+					geom.MultiplyByScalar(ctx.comps.NormalVec, (nRatio*cosI)-cosTheta),
+					geom.MultiplyByScalar(ctx.comps.EyeVec, nRatio))
+
+				ray = geom.NewRay(ctx.comps.UnderPoint, newdir)
+				b.refractiveIndex = intersection.S.GetMaterial().RefractiveIndex
+				b.diffuse = false
 			}
-
-			// Find cos(theta_t) via trigonometric identity
-			cosTheta := math.Sqrt(1.0 - sin2Theta)
-
-			// Compute the direction of the refracted ray
-			newdir := geom.Sub(
-				geom.MultiplyByScalar(ctx.comps.NormalVec, (nRatio*cosI)-cosTheta),
-				geom.MultiplyByScalar(ctx.comps.EyeVec, nRatio))
-
-			ray = geom.NewRay(ctx.comps.UnderPoint, newdir)
-			b.refractiveIndex = intersection.S.GetMaterial().RefractiveIndex
-			b.diffuse = false
 
 		} else if intersection.S.GetMaterial().Reflectivity < 1.0 {
 			// DIFFUSE - compute random ray in hemisphere and "overwrite" ray for next iteration
@@ -146,9 +152,6 @@ func (ctx *Ctx) trace(ray geom.Ray) geom.Tuple4 {
 			var newdir geom.Tuple4
 			ctx.randomVectorInHemisphere(ctx.comps.NormalVec, ctx.rnd, &newdir)
 			ray = geom.NewRay(ctx.comps.OverPoint, newdir)
-			//if intersection.S.GetMaterial().Emission[0] > 0.0 {
-			//	break
-			//}
 			b.cos = geom.Dot(newdir, ctx.comps.NormalVec)
 		} else {
 			b.diffuse = false

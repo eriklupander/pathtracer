@@ -31,6 +31,7 @@ func NewGlass() Material {
 		Color:           geom.Tuple4{0, 0, 0},
 		Emission:        geom.Tuple4{0, 0, 0},
 		RefractiveIndex: 1.52,
+		Reflectivity:    0.1,
 	}
 }
 func NewMirror() Material {
