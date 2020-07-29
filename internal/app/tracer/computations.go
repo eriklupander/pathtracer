@@ -41,14 +41,16 @@ func PrepareComputationForIntersectionPtr(i shapes.Intersection, r geom.Ray, com
 		comps.Inside = true
 		geom.NegatePtr(comps.NormalVec, &comps.NormalVec) // fix
 	}
+
+	// Perhaps only compute these if we're going to cast a new ray?
 	geom.MultiplyByScalarPtr(comps.NormalVec, geom.Epsilon, &comps.cachedOffset)
 	geom.AddPtr(comps.Point, comps.cachedOffset, &comps.OverPoint)
-	geom.SubPtr(comps.Point, comps.cachedOffset, &comps.UnderPoint)
+	// Moved away the UnderPoint since it's only used for transparent surfaces.
 
 	comps.N1 = 1.0
 	comps.N2 = 1.0
 
-	comps.containers = comps.containers[:0] // make([]Shape, 0)
+	comps.containers = comps.containers[:0]
 	for idx := range xs {
 		if xs[idx].S.ID() == i.S.ID() && i.T == xs[idx].T {
 			if len(comps.containers) == 0 {

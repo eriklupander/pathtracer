@@ -78,9 +78,23 @@ func OCLScene() func() *Scene {
 		light.Emission = geom.NewColor(9, 8, 6)
 		lightsource.SetMaterial(light)
 
+		// light cylinder
+		cyl := shapes.NewCylinderMMC(0, 2, false)
+		cyl.SetTransform(geom.Translate(0, .26, 0))
+		cyl.SetTransform(geom.Scale(0.3, 0.25, 0.3))
+		cyl.SetMaterial(material.NewDiffuse(0.2, 0.2, 0.2))
+
+		// mirror
+		mirror := shapes.NewCube()
+		mirror.SetTransform(geom.Translate(0.25, 0.1, 0))
+		mirror.SetTransform(geom.Scale(0.05, 0.15, 0.15))
+		mirror.SetTransform(geom.RotateY(math.Pi / 8))
+		mirror.SetMaterial(material.NewMirror())
+
 		return &Scene{
-			Camera:  cam,
-			Objects: []shapes.Shape{floor, ceil, leftWall, rightWall, backWall, leftSphere, middleSphere, rightSphere, lightsource},
+			Camera: cam,
+			Objects: []shapes.Shape{floor, ceil, leftWall, rightWall, backWall, leftSphere, middleSphere, rightSphere,
+				lightsource, cyl, mirror},
 		}
 	}
 

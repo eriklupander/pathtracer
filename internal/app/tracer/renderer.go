@@ -8,13 +8,12 @@ import (
 	"github.com/eriklupander/pathtracer/internal/app/shapes"
 	"math"
 	"math/rand"
-	"sort"
 	"sync"
 	"time"
 )
 
-const samples = 2048
-const maxBounces = 4
+const samples = 256
+const maxBounces = 5
 
 var backgroundColor = geom.NewColor(0.15, 0.15, 0.25)
 
@@ -45,11 +44,12 @@ type Ctx struct {
 func NewCtx(id int, scene *scenes.Scene, canvas *canvas2.Canvas, jobsChan chan *job, wg *sync.WaitGroup) *Ctx {
 	return &Ctx{Id: id, scene: scene, canvas: canvas, camera: scene.Camera, jobsChan: jobsChan, wg: wg, rnd: rand.New(rand.NewSource(time.Now().UnixNano())),
 		// allocate memory
-		pointInView: geom.NewPoint(0, 0, -1.0),
-		pixel:       geom.NewColor(0, 0, 0),
-		origin:      geom.NewPoint(0, 0, 0),
-		direction:   geom.NewVector(0, 0, 0),
-		subVec:      geom.NewVector(0, 0, 0),
+		pointInView:   geom.NewPoint(0, 0, -1.0),
+		pixel:         geom.NewColor(0, 0, 0),
+		origin:        geom.NewPoint(0, 0, 0),
+		direction:     geom.NewVector(0, 0, 0),
+		subVec:        geom.NewVector(0, 0, 0),
+		intersections: make([]shapes.Intersection, 20),
 	}
 }
 
@@ -101,13 +101,14 @@ func (ctx *Ctx) trace(ray geom.Ray) geom.Tuple4 {
 	var transformedRay geom.Ray
 	var bounces = make([]bounce, 0)
 
+	ctx.comps = NewComputation()
 	for i := 0; i < maxBounces; i++ {
-		ctx.comps = NewComputation()
 		intersection, found := ctx.findIntersection(ray, transformedRay)
 		if !found {
 			return geom.Add(ctx.accumColor, geom.Hadamard(ctx.mask, backgroundColor))
 		}
 
+		// TODO maybe we should have a pre-populated "list" of bounces instead whose values we change?
 		b := bounce{
 			point:    ctx.comps.OverPoint,
 			color:    intersection.S.GetMaterial().Color,
@@ -115,10 +116,11 @@ func (ctx *Ctx) trace(ray geom.Ray) geom.Tuple4 {
 		}
 
 		if intersection.S.GetMaterial().RefractiveIndex != 1.0 {
-
+			// TRANSPARENT
 			// some rays could reflect rather than refract
 			if intersection.S.GetMaterial().Reflectivity > ctx.rnd.Float64() {
-				ray = geom.NewRay(ctx.comps.OverPoint, ctx.comps.ReflectVec)
+				ray.Origin = ctx.comps.OverPoint
+				ray.Direction = ctx.comps.ReflectVec
 				b.diffuse = false
 			} else {
 				// Find the ratio of first index of refraction to the second.
@@ -136,12 +138,16 @@ func (ctx *Ctx) trace(ray geom.Ray) geom.Tuple4 {
 				// Find cos(theta_t) via trigonometric identity
 				cosTheta := math.Sqrt(1.0 - sin2Theta)
 
-				// Compute the direction of the refracted ray
-				newdir := geom.Sub(
+				// Compute the direction of the refracted ray, store the result in the ray instance
+				geom.SubPtr(
 					geom.MultiplyByScalar(ctx.comps.NormalVec, (nRatio*cosI)-cosTheta),
-					geom.MultiplyByScalar(ctx.comps.EyeVec, nRatio))
+					geom.MultiplyByScalar(ctx.comps.EyeVec, nRatio),
+					&ray.Direction)
 
-				ray = geom.NewRay(ctx.comps.UnderPoint, newdir)
+				// Store ray origin from computed "underpoint"
+				// (moved from computations code since it's only applicable for transparent surfaces)
+				geom.SubPtr(ctx.comps.Point, ctx.comps.cachedOffset, &ray.Origin)
+
 				b.refractiveIndex = intersection.S.GetMaterial().RefractiveIndex
 				b.diffuse = false
 			}
@@ -149,14 +155,14 @@ func (ctx *Ctx) trace(ray geom.Ray) geom.Tuple4 {
 		} else if intersection.S.GetMaterial().Reflectivity < 1.0 {
 			// DIFFUSE - compute random ray in hemisphere and "overwrite" ray for next iteration
 			b.diffuse = true
-			var newdir geom.Tuple4
-			ctx.randomVectorInHemisphere(ctx.comps.NormalVec, ctx.rnd, &newdir)
-			ray = geom.NewRay(ctx.comps.OverPoint, newdir)
-			b.cos = geom.Dot(newdir, ctx.comps.NormalVec)
+			randomVectorInHemisphere(ctx.comps.NormalVec, ctx.rnd, &ray.Direction)
+			ray.Origin = ctx.comps.OverPoint
+			b.cos = geom.Dot(ray.Direction, ctx.comps.NormalVec)
 		} else {
+			// REFLECTION - compute new ray from overpoint in reflection vec direction
 			b.diffuse = false
-			// Full reflection, looks ok-ish but I think the emission is wrong
-			ray = geom.NewRay(ctx.comps.OverPoint, ctx.comps.ReflectVec)
+			ray.Origin = ctx.comps.OverPoint
+			ray.Direction = ctx.comps.ReflectVec
 		}
 		bounces = append(bounces, b)
 	}
@@ -193,18 +199,17 @@ func (ctx *Ctx) computeColor(bounces []bounce) geom.Tuple4 {
 
 			// The updated mask is used on _the next_ bounce
 			// the mask colour picks up surface colours at each bounce
-			ctx.mask = geom.Hadamard(ctx.mask, b.color)
+			geom.HadamardPtr(&ctx.mask, &b.color, &ctx.mask)
 
 			// perform cosine-weighted importance sampling for diffuse surfaces
-			ctx.mask = geom.MultiplyByScalar(ctx.mask, b.cos)
+			geom.MultiplyByScalarPtr(ctx.mask, b.cos, &ctx.mask)
 		} else if b.refractiveIndex != 1.0 {
 			// If we have a transparent material, we should kind of "ignore" the hit on the transparent material
-			// and instead use whatever color the next bounce has
+			// and instead use whatever color the next bounce has.
+			// TODO we must do Schlick here!
 
 		} else {
-			// the line below propagates reflected light onto the next surface, but turns the sphere
-			// into a...sun?
-			//ctx.accumColor = geom.Add(ctx.accumColor, geom.Hadamard(ctx.mask, geom.NewColor(9,8,6)))
+			// reflective?
 			ctx.mask = geom.Hadamard(ctx.mask, b.color)
 		}
 	}
@@ -213,7 +218,6 @@ func (ctx *Ctx) computeColor(bounces []bounce) geom.Tuple4 {
 
 func (ctx *Ctx) findIntersection(ray geom.Ray, transformedRay geom.Ray) (shapes.Intersection, bool) {
 	var hitIndex = -1
-	//t := 0.0
 	ctx.intersections = ctx.intersections[:0]
 
 	// find all intersections
@@ -228,18 +232,23 @@ func (ctx *Ctx) findIntersection(ray geom.Ray, transformedRay geom.Ray) (shapes.
 	}
 
 	// If there were no intersection
-	if len(ctx.intersections) == 0 {
+	xsCount := len(ctx.intersections)
+	if xsCount == 0 {
 		// from https://github.com/straaljager/OpenCL-path-tracing-tutorial-2-Part-2-Path-tracing-spheres/blob/master/opencl_kernel.cl
 		return shapes.Intersection{}, false
 	}
 
 	// sort intersections if necessary
-	if len(ctx.intersections) > 1 {
-		sort.Sort(ctx.intersections)
+	if xsCount > 1 {
+		//if xsCount < 7 {
+		ctx.intersections = mysort(ctx.intersections)
+		//} else {
+		//	sort.Sort(ctx.intersections)
+		//}
 	}
 
 	// loop over all intersections and find the first positive one
-	for i := 0; i < len(ctx.intersections); i++ {
+	for i := 0; i < xsCount; i++ {
 
 		// Check is positive (in front of camera)
 		if ctx.intersections[i].T > 0.0 {
@@ -259,6 +268,19 @@ func (ctx *Ctx) findIntersection(ray geom.Ray, transformedRay geom.Ray) (shapes.
 	// Use the computations func from Ray-tracer challenge impl that computes surface normal, reflVec etc.
 	PrepareComputationForIntersectionPtr(intersection, ray, &ctx.comps, ctx.intersections...)
 	return intersection, true
+}
+
+// given that simple scenes won't have more than a handful of intersections per ray, the constant-time naive
+// sort below is faster when less than 5-6 intersections
+func mysort(xs shapes.Intersections) shapes.Intersections {
+	for i := 0; i < len(xs); i++ {
+		for j := 0; j < len(xs); j++ {
+			if xs[i].T < xs[j].T {
+				xs.Swap(i, j)
+			}
+		}
+	}
+	return xs
 }
 
 func (ctx *Ctx) resetMaskAndAccumulatedColors() {
@@ -287,8 +309,33 @@ func (ctx *Ctx) rayForPixelPathTracer(x, y int, out *geom.Ray) {
 	geom.SubPtr(ctx.pixel, ctx.origin, &ctx.subVec)
 	geom.NormalizePtr(&ctx.subVec, &ctx.direction)
 
+	// for DoF, we could probably do something such as:
+	/*
+		Given a circle-center 𝐶=(𝑎,𝑏,𝑐) and radius 𝑟, and a normal vector 𝐧 to the plane containing the circle,
+		you want to find a point (𝑢,𝑣,𝑤) on the circle with the tangent at (𝑢,𝑣,𝑤) parallel to 𝐭=(𝑝,𝑞,𝑠).
+
+		First of all, this isn't always possible.
+		If, for instance, 𝐭 and 𝐧 are parallel, it simply can't be done.
+		The requirement is that 𝐭⋅𝐧=0, so I'm going to assume that.
+
+		Now: let
+		𝐡=𝐭×𝐧
+		and
+		𝐤=1‖𝐡‖𝐡.
+		Then your desired circle-point is
+		𝑃=𝐶±𝑟𝐤
+	*/
+
 	out.Direction = ctx.direction
 	out.Origin = ctx.origin
+}
+
+func positionOnCircle(origin, direction geom.Tuple4) geom.Tuple4 {
+	r := 0.05
+	t := geom.Tuple4{direction[2], direction[2], -direction[0] - direction[1]} // N = (a,b,c), then you could always choose T = (c,c,-a-b)
+	h := geom.Cross(t, direction)
+	k := geom.MultiplyByScalar(h, 1/geom.Magnitude(h))
+	return geom.Add(origin, geom.MultiplyByScalar(k, r))
 }
 
 // randomVectorInHemisphere translated into Go from https://raytracey.blogspot.com/2016/11/opencl-path-tracing-tutorial-2-path.html
@@ -296,7 +343,7 @@ func (ctx *Ctx) rayForPixelPathTracer(x, y int, out *geom.Ray) {
 // while using the randomConeInHemisphere func translated from Hunter Loftis PathTracer produces overexposed highlights.
 //
 // Need to figure out why.
-func (ctx *Ctx) randomVectorInHemisphere(normalVec geom.Tuple4, rnd *rand.Rand, newdir *geom.Tuple4) {
+func randomVectorInHemisphere(normalVec geom.Tuple4, rnd *rand.Rand, newdir *geom.Tuple4) {
 	var rand1 = 2.0 * math.Pi * rnd.Float64()
 	var rand2 = rnd.Float64()
 	var rand2s = math.Sqrt(rand2)
@@ -304,9 +351,9 @@ func (ctx *Ctx) randomVectorInHemisphere(normalVec geom.Tuple4, rnd *rand.Rand, 
 	/* create a local orthogonal coordinate frame centered at the hitpoint */
 	var axis geom.Tuple4
 	if math.Abs(normalVec[0]) > 0.1 {
-		axis = geom.Up // NewVector(0, 1, 0)
+		axis = geom.Up
 	} else {
-		axis = geom.Right //NewVector(1, 0, 0)
+		axis = geom.Right
 	}
 	u := geom.Normalize(geom.Cross(axis, normalVec))
 	v := geom.Cross(normalVec, u)

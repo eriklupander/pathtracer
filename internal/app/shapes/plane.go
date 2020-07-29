@@ -79,7 +79,7 @@ func (p *Plane) IntersectLocal(ray geom.Ray, xs *Intersections) {
 	t := -ray.Origin.Get(1) / ray.Direction.Get(1)
 	p.savedXs[0].T = t
 	p.savedXs[0].S = p
-	*xs = append(*xs, p.savedXs...)
+	*xs = append(*xs, p.savedXs[0])
 }
 
 func (p *Plane) NormalAtLocal(point geom.Tuple4, intersection *Intersection) geom.Tuple4 {

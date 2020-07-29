@@ -108,7 +108,7 @@ func (s *Sphere) IntersectLocal(ray geom.Ray, xs *Intersections) {
 	s.xsCache[1].T = t2
 	s.xsCache[0].S = s
 	s.xsCache[1].S = s
-	*xs = append(*xs, s.xsCache...)
+	*xs = append(*xs, s.xsCache[0], s.xsCache[1])
 }
 
 func (s *Sphere) GetTransform() geom.Mat4x4 {

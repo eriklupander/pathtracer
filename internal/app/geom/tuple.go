@@ -248,7 +248,7 @@ func Hadamard(t1 Tuple4, t2 Tuple4) Tuple4 {
 	return t3
 }
 
-func HadamardPtr(t1 *Tuple4, t2 Tuple4, out *Tuple4) {
+func HadamardPtr(t1 *Tuple4, t2 *Tuple4, out *Tuple4) {
 	out[0] = t1[0] * t2[0]
 	out[1] = t1[1] * t2[1]
 	out[2] = t1[2] * t2[2]

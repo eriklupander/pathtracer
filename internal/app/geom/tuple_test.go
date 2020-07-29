@@ -162,7 +162,13 @@ func TestDot(t *testing.T) {
 	dotProduct := Dot(t1, t2)
 	assert.Equal(t, 20.0, dotProduct)
 }
-
+func TestDotProduct(t *testing.T) {
+	t1 := NewVector(1, 2, 3)
+	t2 := NewVector(2, 3, 4)
+	res := Tuple4{}
+	DotProduct(&t1, &t2, &res)
+	assert.Equal(t, 20.0, res[0])
+}
 func TestCross(t *testing.T) {
 	t1 := NewVector(1, 2, 3)
 	t2 := NewVector(2, 3, 4)
@@ -219,6 +225,15 @@ func BenchmarkDot(b *testing.B) {
 		res = Dot(t1, t2)
 	}
 	fmt.Printf("%v\n", res)
+}
+func BenchmarkDotProduct(b *testing.B) {
+	t1 := NewVector(1, 2, 3)
+	t2 := NewVector(2, 3, 4)
+	res := Tuple4{}
+	for i := 0; i < b.N; i++ {
+		DotProduct(&t1, &t2, &res)
+	}
+	fmt.Printf("%v\n", res[0])
 }
 func BenchmarkNormalizePtr(b *testing.B) {
 	t1 := NewVector(1, 2, 3)
