@@ -39,6 +39,8 @@ type Ctx struct {
 
 	mask       geom.Tuple4
 	accumColor geom.Tuple4
+
+	bounces []bounce
 }
 
 func NewCtx(id int, scene *scenes.Scene, canvas *canvas2.Canvas, jobsChan chan *job, wg *sync.WaitGroup) *Ctx {
@@ -50,6 +52,7 @@ func NewCtx(id int, scene *scenes.Scene, canvas *canvas2.Canvas, jobsChan chan *
 		direction:     geom.NewVector(0, 0, 0),
 		subVec:        geom.NewVector(0, 0, 0),
 		intersections: make([]shapes.Intersection, 20),
+		bounces:       make([]bounce, 8),
 	}
 }
 
@@ -99,7 +102,9 @@ func (ctx *Ctx) trace(ray geom.Ray) geom.Tuple4 {
 	ctx.resetMaskAndAccumulatedColors()
 
 	var transformedRay geom.Ray
-	var bounces = make([]bounce, 0)
+	//var bounces = make([]bounce, 5)
+	//ctx.bounces = ctx.bounces[:0]
+	bounceIndex := 0
 
 	ctx.comps = NewComputation()
 	for i := 0; i < maxBounces; i++ {
@@ -164,9 +169,10 @@ func (ctx *Ctx) trace(ray geom.Ray) geom.Tuple4 {
 			ray.Origin = ctx.comps.OverPoint
 			ray.Direction = ctx.comps.ReflectVec
 		}
-		bounces = append(bounces, b)
+		ctx.bounces[bounceIndex] = b
+		bounceIndex++
 	}
-	return ctx.computeColor(bounces)
+	return ctx.computeColor(bounceIndex)
 }
 
 // Time to compute color and light propagation
@@ -191,8 +197,9 @@ func (ctx *Ctx) trace(ray geom.Ray) geom.Tuple4 {
 
 // So, what we're basically are doing is that we're collecting colors (mask) on each bounce
 // multiplied with the cos between the outgoing new vector and the surface's normal vector.
-func (ctx *Ctx) computeColor(bounces []bounce) geom.Tuple4 {
-	for _, b := range bounces {
+func (ctx *Ctx) computeColor(bounceCount int) geom.Tuple4 {
+	for i := 0; i < bounceCount; i++ {
+		b := ctx.bounces[i]
 		if b.diffuse {
 			// First, ADD current color with the hadamard of the current mask and the emission properties of the hit object.
 			ctx.accumColor = geom.Add(ctx.accumColor, geom.Hadamard(ctx.mask, b.emission))

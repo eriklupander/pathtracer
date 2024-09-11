@@ -1,7 +1,6 @@
 package scenes
 
 import (
-	"github.com/eriklupander/pathtracer/cmd"
 	"github.com/eriklupander/pathtracer/internal/app/camera"
 	"github.com/eriklupander/pathtracer/internal/app/geom"
 	"github.com/eriklupander/pathtracer/internal/app/material"
@@ -9,10 +8,10 @@ import (
 	"math"
 )
 
-func ReferenceScene() func() *Scene {
+func ReferenceScene(width, height int) func() *Scene {
 	return func() *Scene {
 
-		cam := camera.NewCamera(cmd.Cfg.Width, cmd.Cfg.Height, math.Pi/3, geom.NewPoint(-2, 2.0, -4), geom.NewPoint(0, 0.5, 0))
+		cam := camera.NewCamera(width, height, math.Pi/3, geom.NewPoint(-2, 2.0, -4), geom.NewPoint(0, 0.5, 0))
 
 		lightBulb := shapes.NewSphere()
 		lb := material.NewLightBulb()

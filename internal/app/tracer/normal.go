@@ -5,7 +5,6 @@ import (
 	"github.com/eriklupander/pathtracer/internal/app/shapes"
 )
 
-//
 func NormalAtPtr(s shapes.Shape, worldPoint geom.Tuple4, intersection *shapes.Intersection, localPoint *geom.Tuple4) geom.Tuple4 {
 
 	// transform point from world to object space, including recursively traversing any parent object

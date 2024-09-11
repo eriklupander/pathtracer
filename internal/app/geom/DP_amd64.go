@@ -1,5 +1,5 @@
-//+build !noasm
-//+build !appengine
+//go:build !noasm && !appengine
+// +build !noasm,!appengine
 
 package geom
 

@@ -1,38 +1,47 @@
 package main
 
 import (
-	"github.com/eriklupander/pathtracer/cmd"
+	"flag"
+	"fmt"
 	"github.com/eriklupander/pathtracer/internal/app/scenes"
 	"github.com/eriklupander/pathtracer/internal/app/tracer"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"runtime"
+	"runtime/pprof"
 )
 
 func main() {
+	var workers, width, height, samples int
+	var rednerScene string
+	var profile bool
 
-	var configFlags = pflag.NewFlagSet("config", pflag.ExitOnError)
-	configFlags.Int("workers", runtime.NumCPU(), "number of workers")
-	configFlags.Int("width", 640, "Image width")
-	configFlags.Int("height", 480, "Image height")
-	configFlags.Int("samples", 1, "Number of samples per pixel")
-	configFlags.String("scene", "reference", "scene from /scenes")
+	flag.IntVar(&workers, "workers", runtime.NumCPU(), "Number of workers")
+	flag.IntVar(&width, "width", 640, "Width of screen")
+	flag.IntVar(&height, "height", 480, "Height of screen")
+	flag.IntVar(&samples, "samples", 256, "Number of samples to generate")
+	flag.StringVar(&rednerScene, "scene", "reference", "Scene to use")
+	flag.BoolVar(&profile, "profile", false, "Enable profiling")
 
-	if err := configFlags.Parse(os.Args[1:]); err != nil {
-		panic(err.Error())
+	flag.Parse()
+
+	fmt.Printf("Running with %d workers\n", workers)
+	fmt.Printf("-- samples %d\n", samples)
+	fmt.Printf("-- scene %s\n", rednerScene)
+
+	if profile {
+		f, err := os.Create("default.pgo")
+		if err != nil {
+			log.Fatal("could not create CPU profile: ", err)
+		}
+		defer f.Close() // error handling omitted for example
+		if err := pprof.StartCPUProfile(f); err != nil {
+			log.Fatal("could not start CPU profile: ", err)
+		}
+		defer pprof.StopCPUProfile()
 	}
-	if err := viper.BindPFlags(configFlags); err != nil {
-		panic(err.Error())
-	}
-	viper.AutomaticEnv()
-
-	cmd.FromConfig()
-	logrus.Printf("Running with %d CPUs\n", viper.GetInt("workers"))
 
 	//runtime.SetBlockProfileRate(1)
 	//runtime.SetMutexProfileFraction(1)
@@ -42,15 +51,15 @@ func main() {
 	}()
 
 	var scene func() *scenes.Scene
-	switch viper.GetString("scene") {
+	switch rednerScene {
 	case "reference":
-		scene = scenes.OCLScene()
+		scene = scenes.OCLScene(width, height)
 	case "cornell":
-		scene = scenes.OCLScene()
+		scene = scenes.OCLScene(width, height)
 	default:
-		scene = scenes.OCLScene()
+		scene = scenes.OCLScene(width, height)
 	}
 
-	t := tracer.NewPathTracer()
+	t := tracer.NewPathTracer(width, height, workers)
 	t.Render(scene)
 }

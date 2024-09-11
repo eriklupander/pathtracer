@@ -2,7 +2,6 @@ package tracer
 
 import (
 	"fmt"
-	"github.com/eriklupander/pathtracer/cmd"
 	canvas2 "github.com/eriklupander/pathtracer/internal/app/canvas"
 	"github.com/eriklupander/pathtracer/internal/app/geom"
 	"github.com/eriklupander/pathtracer/internal/app/scenes"
@@ -20,32 +19,34 @@ var black = geom.NewColor(0, 0, 0)
 var white = geom.NewColor(1, 1, 1)
 
 type PathTracer struct {
+	width, height int
+	workers       int
 }
 
 func (t *PathTracer) Render(sceneFactory func() *scenes.Scene) {
 
 	st := time.Now()
-	canvas := canvas2.NewCanvas(cmd.Cfg.Width, cmd.Cfg.Height)
+	canvas := canvas2.NewCanvas(t.width, t.height)
 	jobs := make(chan *job)
 
 	wg := sync.WaitGroup{}
 	wg.Add(canvas.H)
 
 	// Create the render contexts, one per worker
-	renderContexts := make([]*Ctx, cmd.Cfg.Workers)
-	for i := 0; i < cmd.Cfg.Workers; i++ {
+	renderContexts := make([]*Ctx, t.workers)
+	for i := 0; i < t.workers; i++ {
 		renderContexts[i] = NewCtx(i, sceneFactory(), canvas, jobs, &wg)
 	}
 
 	// start workers
-	for i := 0; i < cmd.Cfg.Workers; i++ {
+	for i := 0; i < t.workers; i++ {
 		go renderContexts[i].workerFuncPerLine()
 	}
 
 	// start passing work to the workers, one line at a time
-	for row := 0; row < cmd.Cfg.Height; row++ {
+	for row := 0; row < t.height; row++ {
 		jobs <- &job{row: row, col: 0}
-		fmt.Printf("%d/%d\n", row, cmd.Cfg.Height)
+		fmt.Printf("%d/%d\n", row, t.height)
 	}
 
 	wg.Wait()
@@ -60,8 +61,8 @@ func (t *PathTracer) Render(sceneFactory func() *scenes.Scene) {
 	writeImagePNG(canvas, "out.png")
 }
 
-func NewPathTracer() *PathTracer {
-	return &PathTracer{}
+func NewPathTracer(width, height, workers int) *PathTracer {
+	return &PathTracer{height: height, width: width, workers: workers}
 }
 
 func writeImagePNG(canvas *canvas2.Canvas, filename string) {

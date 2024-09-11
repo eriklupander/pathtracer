@@ -3,6 +3,9 @@ all: fmt build test
 build:
 	go build -o bin/pt cmd/pt/main.go
 
+build-pgo:
+	go build -pgo=default.pgo -o bin/pt-pgo cmd/pt/main.go
+
 run: build
 	./bin/pt
 

@@ -1,7 +1,6 @@
 package scenes
 
 import (
-	"github.com/eriklupander/pathtracer/cmd"
 	"github.com/eriklupander/pathtracer/internal/app/camera"
 	"github.com/eriklupander/pathtracer/internal/app/geom"
 	"github.com/eriklupander/pathtracer/internal/app/material"
@@ -9,10 +8,10 @@ import (
 	"math"
 )
 
-func OCLScene() func() *Scene {
+func OCLScene(width, height int) func() *Scene {
 	return func() *Scene {
 
-		cam := camera.NewCamera(cmd.Cfg.Width, cmd.Cfg.Height, math.Pi/3, geom.NewPoint(0, 0.1, -1.5), geom.NewPoint(0, 0.05, 0))
+		cam := camera.NewCamera(width, height, math.Pi/3, geom.NewPoint(0, 0.1, -1.5), geom.NewPoint(0, 0.05, 0))
 
 		//middleSphere := make([]shapes.Shape, 9)
 
@@ -93,8 +92,8 @@ func OCLScene() func() *Scene {
 
 		return &Scene{
 			Camera: cam,
-			Objects: []shapes.Shape{floor, ceil, leftWall, rightWall, backWall, leftSphere, middleSphere, rightSphere,
-				lightsource, cyl, mirror},
+			Objects: []shapes.Shape{floor, ceil, leftWall, rightWall, backWall, leftSphere, rightSphere,
+				lightsource},
 		}
 	}
 
